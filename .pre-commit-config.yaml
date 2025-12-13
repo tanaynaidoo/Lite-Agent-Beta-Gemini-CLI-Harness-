@@ -17,6 +17,12 @@ repos:
         entry: ./.venv/bin/flake8
         language: system
         types: [python]
+      - id: mypy
+        name: mypy
+        entry: ./.venv/bin/mypy
+        language: system
+        types: [python]
+        args: [--no-warn-no-return, --ignore-missing-imports] # Example mypy args, adjust as needed
       - id: isort
         name: isort
         entry: ./.venv/bin/isort
