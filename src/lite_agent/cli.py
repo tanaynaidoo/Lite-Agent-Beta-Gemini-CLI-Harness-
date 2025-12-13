@@ -39,7 +39,7 @@ def start():
             with open(PID_FILE, "r", encoding="utf-8") as f:  # pylint: disable=W1514
                 pid = int(f.read().strip())
             # Check if process exists
-            if pid > 0 and os.path.exists(f"/proc/{pid}"):
+            if pid > 0 and os.path.exists(f"/proc/{pid}"):  # pylint: disable=C0301
                 click.echo(f"Agent is already running with PID: {pid}. Exiting.")
                 sys.exit(1)
             else:

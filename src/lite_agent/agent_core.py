@@ -13,7 +13,8 @@ import sys
 import time
 
 # Import IPC functions from local module
-# pylint: disable=W0611 # UDS_PATH is not directly used in this file
+# flake8: noqa: F401 (UDS_PATH is used by start_ipc_server)
+# pylint: disable=W0611 # UDS_PATH is used by start_ipc_server
 from .ipc import UDS_PATH, agent_command_handler, start_ipc_server
 
 # Global flag to control agent's running state
