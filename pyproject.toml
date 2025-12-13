@@ -9,6 +9,22 @@ dependencies = [
 requires-python = ">=3.12"
 readme = "README.md"
 license = { text = "MIT" }
+keywords = ["cli", "agent", "ai", "gemini", "harness", "automation", "python"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Utilities",
+]
+
+[project.urls]
+Homepage = "https://github.com/tanaynaidoo/Lite-Agent-Beta-Gemini-CLI-Harness-"
+Repository = "https://github.com/tanaynaidoo/Lite-Agent-Beta-Gemini-CLI-Harness-"
+"Bug Tracker" = "https://github.com/tanaynaidoo/Lite-Agent-Beta-Gemini-CLI-Harness-/issues"
+"Documentation" = "https://github.com/tanaynaidoo/Lite-Agent-Beta-Gemini-CLI-Harness-/docs"
 
 [project.scripts]
 lite-agent = "src.lite_agent.cli:main"
