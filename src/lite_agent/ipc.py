@@ -67,9 +67,7 @@ def send_command_to_agent(command_dict):
             "Connection refused. Agent might be restarting or " "unresponsive."
         )
         return {"error": "Agent refused connection."}
-    except Exception as err:  # pylint: disable=broad-exception-caught
-        # Catching broad exception for now for placeholder IPC,
-        # should be refined to more specific exceptions in production.
+    except (socket.error, json.JSONDecodeError) as err:
         logging.error("Error sending command to agent: %s", err)
         return {"error": f"IPC communication error: {err}"}
 
@@ -104,7 +102,7 @@ def start_ipc_server(handler_function):
                 response = handler_function(command_dict)
 
                 conn.sendall(json.dumps(response).encode("utf-8"))
-            except Exception as err:  # pylint: disable=broad-exception-caught
+            except (socket.error, json.JSONDecodeError) as err:
                 # Catching broad exception for now for placeholder IPC,
                 # should be refined to more specific exceptions in production.
                 logging.error("Error processing IPC command: %s", err)

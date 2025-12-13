@@ -80,8 +80,7 @@ def start():
         else:
             click.echo("Could not find PID file. Daemon might have failed to start.")
 
-    except Exception as err:  # pylint: disable=broad-exception-caught
-        # Catching broad exception for MVP; refine in production
+    except (FileNotFoundError, PermissionError, OSError) as err:
         click.echo(f"Error starting daemon: {err}", err=True)
         sys.exit(1)
 
