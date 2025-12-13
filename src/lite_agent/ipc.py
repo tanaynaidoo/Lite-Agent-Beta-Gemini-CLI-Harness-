@@ -21,7 +21,8 @@ import socket
 # This should ideally be configurable and located in a secure, writable path
 # For example, in /var/run/lite_agent.sock for system services,
 # or a user-specific path in ~/.cache/lite_agent/lite_agent.sock
-UDS_PATH = "/tmp/lite_agent.sock"
+UDS_DIR = "/tmp/lite_agent_ipc"
+UDS_PATH = os.path.join(UDS_DIR, "lite_agent.sock")
 PID_FILE = "/tmp/lite_agent.pid"  # Re-use PID_FILE from agent_core
 
 
@@ -86,8 +87,12 @@ def start_ipc_server(handler_function):
             # If we can't remove, maybe another process holds it. Exit.
             raise
 
+    # Create UDS directory if it doesn't exist and set permissions
+    os.makedirs(UDS_DIR, mode=0o700, exist_ok=True)
+
     server_socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     server_socket.bind(UDS_PATH)
+    os.chmod(UDS_PATH, 0o600)  # Set strict permissions on the socket file
     server_socket.listen(1)  # Listen for one incoming connection
     logging.info("IPC server listening on %s", UDS_PATH)
 
@@ -115,6 +120,8 @@ def start_ipc_server(handler_function):
         server_socket.close()
         if os.path.exists(UDS_PATH):
             os.remove(UDS_PATH)  # Clean up socket on exit
+        if os.path.exists(UDS_DIR):
+            os.rmdir(UDS_DIR)  # Clean up socket directory on exit
 
 
 # Example handler for agent core

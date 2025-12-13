@@ -40,7 +40,7 @@ def _daemonize():
     # Decouple from parent environment
     os.chdir("/")
     os.setsid()
-    os.umask(0)
+    os.umask(0o022)  # Set a more restrictive umask
 
     try:
         pid = os.fork()
