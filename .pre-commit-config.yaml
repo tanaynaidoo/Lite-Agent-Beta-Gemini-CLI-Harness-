@@ -42,3 +42,7 @@ repos:
         always_run: true
         types: [python]
         stages: [commit]
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.5 # Use a specific version
+    hooks:
+      - id: shellcheck
