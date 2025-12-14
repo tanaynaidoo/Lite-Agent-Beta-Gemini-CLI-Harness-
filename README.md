@@ -44,32 +44,27 @@ git clone https://github.com/tanaynaidoo/Lite-Agent-Beta-Gemini-CLI-Harness-
 cd Lite-Agent-Beta-Gemini-CLI-Harness-
 ```
 
-### 2. Set up the Virtual Environment: A Dedicated Mindspace for Your Agent
+### 2. Set up Virtual Environment and Install
 
-It is highly recommended to create a dedicated virtual environment, a pristine mindspace where your agent's dependencies thrive:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Install Dependencies: Equipping the Agent's Intellect
-
-Install all required development dependencies, arming your agent with its essential tools:
+It is highly recommended to use a virtual environment to manage project dependencies.
 
 ```bash
-pip install -r requirements.txt
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
 ```
 
-### 4. Install Pre-commit Hooks: Our Guardians of Code Integrity
+This command creates a virtual environment, activates it, and installs the project in editable mode, along with its dependencies.
 
-These vigilant `pre-commit` hooks ensure every contribution upholds our commitment to quality, running automated checks before every commit:
+### 3. Install Pre-commit Hooks (Optional but Recommended)
+
+Pre-commit hooks ensure code quality and consistency by running checks before every commit.
 
 ```bash
 pre-commit install
 ```
 
-This setup will automatically invoke `black` (the aesthetician), `isort` (the organizer), `flake8` (the grammarian), `mypy` (the type-safety architect), `pylint` (the critic), and `pytest` (the rigorous examiner) on your staged changes.
+This will set up `black`, `flake8`, `isort`, and `pylint` to run automatically.
 
 ## Quick Start: First Contact - Running a Placeholder CLI Command
 
