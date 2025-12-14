@@ -8,18 +8,24 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest] # Add windows-latest for a separate build job
+        python-version: ["3.10", "3.11", "3.12"] # Test across common Python versions
+
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
-        python-version: '3.x' # Use latest Python 3 version
+        python-version: ${{ matrix.python-version }}
         cache: 'pip'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        # Install project in editable mode to ensure CLI command is available for tests
+        pip install -e .
     - name: Run Black (check only)
       run: black --check .
     - name: Run Flake8
@@ -27,6 +33,34 @@ jobs:
     - name: Run Isort (check only)
       run: isort --check .
     - name: Run Pylint
-      run: pylint --rcfile=.pylintrc src tests # Adapt to your project structure
+      # Adapt to your project structure, ensure .pylintrc is correctly referenced
+      run: pylint --rcfile=.pylintrc src tests main.py
     - name: Run Pytest
       run: pytest
+
+  build-windows-exe:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.x
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x' # Use latest Python 3 for building exe
+        cache: 'pip'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Install project in editable mode so build.sh can find it
+        pip install -e .
+        # PyInstaller will be installed by the build script, but ensure it's available
+        pip install pyinstaller # Pre-install PyInstaller for consistency/speed
+    - name: Build Windows Executable
+      # Run the build script, ensuring it's made executable on Windows (Git Bash/WSL handles this)
+      run: |
+        chmod +x host/windows/build.sh
+        ./host/windows/build.sh
+    - name: Upload Executable (optional)
+      uses: actions/upload-artifact@v4
+      with:
+        name: esl-harness-windows-exe
+        path: host/windows/dist/esl-harness.exe

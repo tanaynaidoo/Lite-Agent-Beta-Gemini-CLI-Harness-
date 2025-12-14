@@ -66,6 +66,25 @@ pre-commit install
 
 This will set up `black`, `flake8`, `isort`, and `pylint` to run automatically.
 
+## Windows Executable & Support: Bridging to Every Desktop
+
+For users on Windows, the Lite Agent CLI can be distributed as a standalone executable (`.exe`), eliminating the need for a local Python installation. This provides a seamless, native experience for your AI companion.
+
+### Obtaining the Windows Executable
+
+There are two primary ways to get the `esl-harness.exe` for Windows:
+
+1.  **From CI/CD Artifacts:** The project's GitHub Actions workflow automatically builds a Windows executable on every push to `main` and pull request. You can download the latest `esl-harness-windows-exe` artifact directly from the "Actions" tab of the GitHub repository after a successful build. This is the easiest way to get a pre-built executable.
+2.  **Building Locally:** If you prefer to build the executable yourself, follow the instructions in the dedicated Windows support documentation.
+
+### Building the Windows Executable Locally
+
+The project includes a convenient script to build the Windows executable using `PyInstaller`. This process requires a Python development environment.
+
+For detailed prerequisites and step-by-step instructions on how to build `esl-harness.exe` locally, please refer to:
+
+[`host/windows/README.md`](host/windows/README.md)
+
 ## Quick Start: First Contact - Running a Placeholder CLI Command
 
 Experience the first interaction with your agent. Here's how to engage with the current placeholder CLI:
