@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest] # Added windows-latest
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
@@ -21,22 +21,20 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    - name: Install dependencies
+    - name: Install dependencies and pre-commit hooks
       run: |
         python -m pip install --upgrade pip
-        pip install -e .
-    - name: Run Black (check only)
-      run: black --check .
-    - name: Run Flake8
-      run: flake8 .
-    - name: Run Isort (check only)
-      run: isort --check .
-    - name: Run Pylint
-      run: pylint --rcfile=.pylintrc src tests main.py
+        pip install -e . pre-commit # Install pre-commit for running local hooks
+        # Ruff needs to be installed in the venv for pre-commit hooks
+        pip install ruff
+        pre-commit install # Install local hooks
+    - name: Run pre-commit hooks (Ruff, YAML, Whitespace, Pytest, Shellcheck)
+      run: pre-commit run --all-files || (git status --short ; git diff ; exit 1)
+      # The above ensures fixes are applied and committed or pipeline fails
     - name: Run Pytest
       run: pytest
 
-  build-windows-installer: # Renamed job for clarity, as it builds the installer
+  build-windows-installer:
     runs-on: windows-latest
     strategy:
       matrix:
@@ -65,4 +63,55 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: LiteAgentCLI_Installer_${{ matrix.architecture }}
-        path: host/windows/LiteAgentCLI_Installer_${{ matrix.architecture }}.exe # Dynamic path
+        path: host/windows/LiteAgentCLI_Installer_${{ matrix.architecture }}.exe
+    - name: Test NSIS Installer (${{ matrix.architecture }})
+      # Test the generated installer silently
+      shell: powershell
+      run: |
+        $InstallerPath = "host\windows\LiteAgentCLI_Installer_${{ matrix.architecture }}.exe"
+        $InstallDir = "$env:TEMP\LiteAgentCLI_TestInstall_${{ matrix.architecture }}"
+
+        Write-Host "Running installer: $InstallerPath"
+        Write-Host "Installing to: $InstallDir"
+
+        # Ensure target directory is clean before installation
+        if (Test-Path $InstallDir) {
+            Remove-Item -Path $InstallDir -Recurse -Force
+        }
+
+        # Run installer silently
+        Start-Process -FilePath $InstallerPath -ArgumentList "/S /D=$InstallDir" -Wait -NoNewWindow
+
+        # Verify installation
+        if (-not (Test-Path "$InstallDir\esl-harness.exe")) {
+            Write-Error "esl-harness.exe not found after installation!"
+            exit 1
+        }
+        Write-Host "esl-harness.exe found at $InstallDir"
+
+        # Test basic commands
+        Set-Location $InstallDir
+        Write-Host "Running esl-harness.exe --help"
+        .\esl-harness.exe --help | Out-Host # Output to console
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "esl-harness.exe --help failed!"
+            exit 1
+        }
+        Write-Host "Running esl-harness.exe doctor"
+        .\esl-harness.exe doctor | Out-Host # Output to console
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "esl-harness.exe doctor failed!"
+            exit 1
+        }
+
+        # Run uninstaller silently
+        Write-Host "Running uninstaller..."
+        Start-Process -FilePath "$InstallDir\Uninstall.exe" -ArgumentList "/S" -Wait -NoNewWindow
+
+        # Verify uninstallation
+        Start-Sleep -Seconds 2 # Give some time for uninstallation to complete
+        if (Test-Path $InstallDir) {
+            Write-Error "Installation directory $InstallDir still exists after uninstallation!"
+            exit 1
+        }
+        Write-Host "Uninstallation verified. Directory $InstallDir removed."

@@ -33,9 +33,12 @@ lite-agent = "src.lite_agent.cli:main"
 requires = ["setuptools>=61.0.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
+[tool.ruff]
 line-length = 88
 
-[tool.flake8]
-max-line-length = 88
-ignore = ["E203", "W503"]
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"] # Basic error, flake8, warnings, isort
+ignore = ["E501"] # Ruff's E501 (line too long) is configurable globally by line-length
+
+[tool.ruff.format]
+docstring-code-format = true
