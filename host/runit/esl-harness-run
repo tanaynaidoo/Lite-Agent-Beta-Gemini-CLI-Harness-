@@ -1,0 +1,19 @@
+#!/bin/sh
+# This script is the run script for the esl-harness service under runit.
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# Set environment for esl-harness (adjust as needed for runit's env dir)
+# For runit, environment variables are typically set in a 'env' directory
+# next to the 'run' script (e.g., /etc/service/esl-harness/env/PATH)
+# PATH=/usr/local/bin:/usr/bin:/bin # Example PATH if esl-harness is not globally in PATH
+
+# Change to the working directory of the application
+# This assumes the application is installed in /opt/lite-agent-cli
+cd /opt/lite-agent-cli || exit 1
+
+# Execute the esl-harness daemon-start command
+# The 'exec' command replaces the current process with esl-harness,
+# ensuring runit directly monitors the agent.
+exec /usr/local/bin/esl-harness daemon-start

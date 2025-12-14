@@ -1,0 +1,17 @@
+[Unit]
+Description=Lite Agent CLI Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/esl-harness daemon-start # Assuming esl-harness is in PATH after installation
+WorkingDirectory=/opt/lite-agent-cli
+# Or specify a user if running as non-root
+# User=liteagent
+Restart=always
+# Standard output and error go to syslog
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=esl-harness
+
+[Install]
+WantedBy=multi-user.target
