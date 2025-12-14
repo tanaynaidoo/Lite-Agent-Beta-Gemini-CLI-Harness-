@@ -20,6 +20,7 @@
 *   New host adapters under `/host`
 *   Refinements to generated `.py` rules (e.g., specific schemas and generators).
 *   Updates to documentation reflecting operational guidelines or environmental specifics.
+*   Creation and maintenance of platform-specific build processes and installer scripts (e.g., PyInstaller, NSIS, Inno Setup, `.deb`, `.rpm` packages) within designated `host/` or `build/` directories.
 
 ## Forbidden Forever
 
