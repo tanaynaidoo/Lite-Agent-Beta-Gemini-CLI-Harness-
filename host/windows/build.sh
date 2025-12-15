@@ -82,6 +82,15 @@ echo "Compiling NSIS script 'installer.nsi' for $ARCH..."
 # Pass architecture as a define to the NSIS script
 makensis /L "makensis_log.txt" /DARCH="$ARCH" installer.nsi
 
+# Verify installer creation
+INSTALLER_PATH="./LiteAgentCLI_Installer_${ARCH}.exe"
+if [ ! -f "$INSTALLER_PATH" ]; then
+    echo "ERROR: NSIS Installer '$INSTALLER_PATH' was not created!"
+    ls -l . # List current directory contents for debugging
+    exit 1
+fi
+echo "NSIS Installer '$INSTALLER_PATH' successfully created."
+
 echo "--- NSIS Installer Build Complete ($ARCH) ---"
 echo "Installer can be found in: $(pwd)/LiteAgentCLI_Installer_${ARCH}.exe" # Dynamic name based on ARCH
 

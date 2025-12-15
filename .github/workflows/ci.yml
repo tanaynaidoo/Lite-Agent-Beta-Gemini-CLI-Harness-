@@ -39,7 +39,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ["3.10"] # Use a specific Python version for stability
+        python-version: ["3.12"] # Use a specific Python version for stability
         architecture: ["x64", "x86"] # Build for both 64-bit and 32-bit Windows
 
     steps:
