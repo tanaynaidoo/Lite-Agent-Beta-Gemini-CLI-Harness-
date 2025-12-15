@@ -30,7 +30,8 @@ if [ ! -d "$VENV_PATH" ]; then
 fi
 
 echo "Activating virtual environment..."
-source "$VENV_PATH/Scripts/activate" # shellcheck disable=SC1091
+# shellcheck disable=SC1091
+source "$VENV_PATH/Scripts/activate"
 
 VENV_PIP="$VENV_PATH/Scripts/pip.exe"
 VENV_PYINSTALLER="$VENV_PATH/Scripts/pyinstaller.exe"
