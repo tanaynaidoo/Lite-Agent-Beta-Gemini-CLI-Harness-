@@ -79,14 +79,20 @@ if ! command -v makensis &> /dev/null; then
 fi
 
 echo "Compiling NSIS script 'installer.nsi' for $ARCH..."
-# Pass architecture as a define to the NSIS script
-makensis /L "makensis_log.txt" /DARCH="$ARCH" installer.nsi
+# Redirect makensis output and subsequent verification to a log file
+BUILD_LOG="makensis_build_${ARCH}.log"
+makensis /V2 /L "${BUILD_LOG}" /DARCH="$ARCH" installer.nsi > "${BUILD_LOG}" 2>&1
+echo "--- Contents of ${BUILD_LOG} ---"
+cat "${BUILD_LOG}"
+echo "--- End of ${BUILD_LOG} ---"
 
 # Verify installer creation
 INSTALLER_PATH="./LiteAgentCLI_Installer_${ARCH}.exe"
 if [ ! -f "$INSTALLER_PATH" ]; then
     echo "ERROR: NSIS Installer '$INSTALLER_PATH' was not created!"
-    ls -l . # List current directory contents for debugging
+    echo "--- Listing current directory (host/windows/) contents ---"
+    ls -l .
+    echo "--- End of directory listing ---"
     exit 1
 fi
 echo "NSIS Installer '$INSTALLER_PATH' successfully created."
