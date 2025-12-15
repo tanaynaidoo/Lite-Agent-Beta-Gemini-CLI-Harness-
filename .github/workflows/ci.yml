@@ -77,8 +77,12 @@ jobs:
       shell: bash
       timeout-minutes: 10
       run: |
+        # Ensure the manually installed Python is used
         python -m pip install --upgrade pip --no-input
-        pip install -e .
+        python -m pip install -e . pre-commit pytest # Install pre-commit for running local hooks and pytest for main tests
+        # Ruff needs to be installed in the venv for pre-commit hooks
+        python -m pip install ruff
+        pre-commit install # Install local hooks
     - name: Install NSIS
       run: choco install nsis --no-progress
     - name: Build Windows Executable and Installer (${{ matrix.architecture }})
