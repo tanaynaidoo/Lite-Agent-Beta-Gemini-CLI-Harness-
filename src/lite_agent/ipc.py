@@ -14,14 +14,15 @@ import logging
 import os
 import signal  # Added for sending SIGTERM from CLI
 import socket
+import tempfile
 
 # flake8: noqa: E501 (Ignoring line length for UDS_PATH definition if it gets long)
 
 # Define the Unix Domain Socket path.
 # This secure channel ensures confidential communication between human and AI.
-UDS_DIR = "/tmp/lite_agent_ipc" # A guarded pathway for AI directives.
+UDS_DIR = os.path.join(tempfile.gettempdir(), "lite_agent_ipc") # A guarded pathway for AI directives.
 UDS_PATH = os.path.join(UDS_DIR, "lite_agent.sock")
-PID_FILE = "/tmp/lite_agent.pid"  # Re-use PID_FILE from agent_core. The AI's digital fingerprint.
+PID_FILE = os.path.join(tempfile.gettempdir(), "lite_agent.pid")  # Re-use PID_FILE from agent_core. The AI's digital fingerprint.
 
 
 # pylint: disable=R0911 # Too many return statements for now, acceptable for IPC
