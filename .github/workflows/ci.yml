@@ -29,10 +29,11 @@ jobs:
         pip install ruff
         pre-commit install # Install local hooks
     - name: Run pre-commit hooks (Ruff, YAML, Whitespace, Pytest, Shellcheck)
+      shell: bash
       run: pre-commit run --all-files || (git status --short ; git diff ; exit 1)
       # The above ensures fixes are applied and committed or pipeline fails
     - name: Run Pytest
-      run: pytest
+      run: python -m pytest
 
   build-windows-installer:
     runs-on: windows-latest
