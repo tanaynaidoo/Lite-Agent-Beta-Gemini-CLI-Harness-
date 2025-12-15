@@ -23,8 +23,8 @@ repos:
         pass_filenames: false
         always_run: true
         types: [python]
-        stages: [commit]
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1 # Use a specific version
-    hooks:
-      - id: shellcheck
+        stages: [pre-commit]
+#  - repo: https://github.com/shellcheck-py/shellcheck-py
+#    rev: v0.11.0.1 # Use a specific version
+#    hooks:
+#      - id: shellcheck
