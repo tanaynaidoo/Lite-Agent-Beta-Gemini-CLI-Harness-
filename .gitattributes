@@ -1,0 +1,3 @@
+# Enforce Unix-style line endings for shell scripts
+*.sh text eol=lf
+host/runit/esl-harness-run text eol=lfrun.sh text eol=lf
