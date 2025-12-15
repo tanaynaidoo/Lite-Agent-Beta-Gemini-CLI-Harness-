@@ -72,7 +72,7 @@ fi
 
 echo "Compiling NSIS script 'installer.nsi' for $ARCH..."
 # Pass architecture as a define to the NSIS script
-makensis /DARCH="$ARCH" installer.nsi
+makensis /L "makensis_log.txt" /DARCH="$ARCH" installer.nsi
 
 echo "--- NSIS Installer Build Complete ($ARCH) ---"
 echo "Installer can be found in: $(pwd)/LiteAgentCLI_Installer_${ARCH}.exe" # Dynamic name based on ARCH

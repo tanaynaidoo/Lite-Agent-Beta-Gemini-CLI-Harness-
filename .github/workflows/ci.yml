@@ -24,7 +24,7 @@ jobs:
     - name: Install dependencies and pre-commit hooks
       run: |
         python -m pip install --upgrade pip
-        pip install -e . pre-commit # Install pre-commit for running local hooks
+        pip install -e . pre-commit pytest # Install pre-commit for running local hooks and pytest for main tests
         # Ruff needs to be installed in the venv for pre-commit hooks
         pip install ruff
         pre-commit install # Install local hooks
@@ -80,10 +80,13 @@ jobs:
         }
 
         # Run installer silently
+        Write-Host "Checking for installer at: $InstallerPath"
         if (-not (Test-Path $InstallerPath)) {
+            Write-Host "Installer file DOES NOT exist at $InstallerPath!"
             Write-Error "Installer file not found at $InstallerPath!"
             exit 1
         }
+        Write-Host "Installer file EXISTS at $InstallerPath."
         Start-Process -FilePath $InstallerPath -ArgumentList "/S /D=$InstallDir" -Wait -NoNewWindow
 
         # Verify installation
