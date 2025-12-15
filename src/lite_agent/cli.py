@@ -8,6 +8,7 @@ It acts as a thin wrapper that communicates with the running agent core
 via IPC, translating human intent into digital directives.
 """
 
+import json
 import os
 import signal  # Added for signal.SIGKILL
 import subprocess
@@ -16,13 +17,11 @@ import time
 
 import click
 import psutil
-import json
 
 from .ipc import PID_FILE, send_command_to_agent
 
 CONFIG_DIR = click.get_app_dir("lite-agent")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
-
 
 
 @click.group()
@@ -54,8 +53,10 @@ def start():
                 )
                 sys.exit(1)
             else:
-                click.echo("Stale PID file found. Removing... "
-                           "Clearing the path for a fresh start.")
+                click.echo(
+                    "Stale PID file found. Removing... "
+                    "Clearing the path for a fresh start."
+                )
                 os.remove(PID_FILE)
         except (ValueError, FileNotFoundError):
             # Invalid PID file or not found, proceed to start
@@ -65,8 +66,11 @@ def start():
     # This command is the human's call to bring the agent to life.
     python_executable = sys.executable
     if not os.path.exists(python_executable):
-        click.echo("Error: Python executable not found. "
-                   "This is unexpected, please check your environment.", err=True)
+        click.echo(
+            "Error: Python executable not found. "
+            "This is unexpected, please check your environment.",
+            err=True,
+        )
         sys.exit(1)
 
     try:
@@ -75,7 +79,9 @@ def start():
             [python_executable, "-m", "src.lite_agent.agent_core"],
             start_new_session=True,  # Decouple from controlling process group
         )
-        click.echo("Lite Agent daemon initiated. Check logs for the AI's first thoughts.")
+        click.echo(
+            "Lite Agent daemon initiated. Check logs for the AI's first thoughts."
+        )
 
         # Wait for the daemon to start and write its PID file
         start_time = time.time()
@@ -83,7 +89,8 @@ def start():
             if time.time() - start_time > 5:
                 click.echo(
                     "Could not find PID file after 5 seconds. Daemon might have failed to start. "
-                    "Consult the logs for diagnostics.", err=True
+                    "Consult the logs for diagnostics.",
+                    err=True,
                 )
                 sys.exit(1)
             time.sleep(0.1)
@@ -93,8 +100,11 @@ def start():
         click.echo(f"Agent is now operational with PID: {pid}. Your AI is ready.")
 
     except (FileNotFoundError, PermissionError, OSError) as err:
-        click.echo(f"Error starting daemon: {err}. "
-                   "Failed to launch the AI's core. Review permissions or path.", err=True)
+        click.echo(
+            f"Error starting daemon: {err}. "
+            "Failed to launch the AI's core. Review permissions or path.",
+            err=True,
+        )
         sys.exit(1)
 
 
@@ -113,7 +123,7 @@ def stop():
             # pylint: disable=W1514,R1732
             with open(PID_FILE, "r", encoding="utf-8") as f:
                 pid = int(f.read().strip())
-            
+
             # Give agent some time to shut down gracefully
             time.sleep(2)
             if psutil.pid_exists(pid):
@@ -121,23 +131,30 @@ def stop():
                 os.kill(pid, signal.SIGTERM)
                 time.sleep(3)
                 if psutil.pid_exists(pid):
-                    click.echo(f"Agent with PID {pid} did not respond to SIGTERM. Sending SIGKILL.")
+                    click.echo(
+                        f"Agent with PID {pid} did not respond to SIGTERM. Sending SIGKILL."
+                    )
                     os.kill(pid, signal.SIGKILL)
                     click.echo(f"SIGKILL sent to PID {pid}.")
 
             if not psutil.pid_exists(pid):
-                click.echo(f"Agent with PID {pid} is no longer running. The AI has gracefully retired.")
+                click.echo(
+                    f"Agent with PID {pid} is no longer running. The AI has gracefully retired."
+                )
 
             os.remove(PID_FILE)
             click.echo("PID file removed. A clean slate for the next activation.")
         except (ValueError, FileNotFoundError, OSError) as err:
             click.echo(
                 f"Error during post-stop cleanup: {err}. "
-                "Manual PID file removal may be required.", err=True
+                "Manual PID file removal may be required.",
+                err=True,
             )
     elif response.get("error") != "Agent not running or socket missing.":
-        click.echo("No PID file found. Agent might have already been stopped. "
-                   "The AI was already resting.")
+        click.echo(
+            "No PID file found. Agent might have already been stopped. "
+            "The AI was already resting."
+        )
 
 
 @main.command()
@@ -147,8 +164,11 @@ def status():
     """
     click.echo("Querying Lite Agent daemon status... Reaching out to the AI's core.")
     if not os.path.exists(PID_FILE):
-        click.echo("Agent is not running (PID file not found). "
-                   "The AI's presence is not detected in the system.", err=True)
+        click.echo(
+            "Agent is not running (PID file not found). "
+            "The AI's presence is not detected in the system.",
+            err=True,
+        )
         return
 
     try:
@@ -156,8 +176,9 @@ def status():
         with open(PID_FILE, "r", encoding="utf-8") as f:
             pid = int(f.read().strip())
         if pid > 0 and psutil.pid_exists(pid):
-            click.echo(f"Agent is running with PID: {pid}. "
-                       "The AI is actively processing.")
+            click.echo(
+                f"Agent is running with PID: {pid}. The AI is actively processing."
+            )
             response = send_command_to_agent({"command": "status"})
             if "status" in response:
                 click.echo(f"Agent internal status: {response['status']}")
@@ -172,15 +193,14 @@ def status():
                 f"Removing PID file {PID_FILE}. The AI's previous footprint is cleared."
             )
             os.remove(PID_FILE)
-    except (ValueError, FileNotFoundError, OSError) as err: # pylint: disable=W0718
+    except (ValueError, FileNotFoundError, OSError) as err:  # pylint: disable=W0718
         click.echo(
             f"Error checking agent status: {err}. "
-            f"Removing PID file {PID_FILE} if present. The AI's status is ambiguous.", err=True
+            f"Removing PID file {PID_FILE} if present. The AI's status is ambiguous.",
+            err=True,
         )
         if os.path.exists(PID_FILE):
             os.remove(PID_FILE)
-
-
 
 
 def load_config():
@@ -192,6 +212,7 @@ def load_config():
             return json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
         return {}
+
 
 def save_config(config_data):
     """Saves the configuration to the JSON file."""
@@ -248,5 +269,5 @@ def show_config():
         click.echo("No configuration set. The AI's mind is a blank slate.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

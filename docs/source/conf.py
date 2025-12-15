@@ -11,36 +11,36 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../src')) # Adjust path to project root
+
+sys.path.insert(0, os.path.abspath("../../src"))  # Adjust path to project root
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Lite Agent'
-copyright = '2025, Gemini Agent'
-author = 'Gemini Agent'
-release = '0.1.0'
+project = "Lite Agent"
+copyright = "2025, Gemini Agent"
+author = "Gemini Agent"
+release = "0.1.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon', # For Google/NumPy style docstrings
-    'sphinx.ext.todo', # For todo notes
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",  # For Google/NumPy style docstrings
+    "sphinx.ext.todo",  # For todo notes
 ]
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 exclude_patterns = []
-
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
-html_static_path = ['_static']
+html_theme = "alabaster"
+html_static_path = ["_static"]
 
 # -- Extension configuration -------------------------------------------------
 

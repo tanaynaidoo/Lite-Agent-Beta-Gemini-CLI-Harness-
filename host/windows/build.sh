@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 # This script builds the Windows executable for the Lite Agent CLI using PyInstaller.
 # It also builds an NSIS installer for the generated executable.
 
@@ -29,6 +30,8 @@ if [ ! -d "$VENV_PATH" ]; then
 fi
 
 echo "Activating virtual environment..."
+
+# shellcheck disable=SC1091
 source "$VENV_PATH/bin/activate"
 
 # 2. Install PyInstaller if not already installed
@@ -69,7 +72,7 @@ fi
 
 echo "Compiling NSIS script 'installer.nsi' for $ARCH..."
 # Pass architecture as a define to the NSIS script
-makensis /DARCH=$ARCH installer.nsi
+makensis /DARCH="$ARCH" installer.nsi
 
 echo "--- NSIS Installer Build Complete ($ARCH) ---"
 echo "Installer can be found in: $(pwd)/LiteAgentCLI_Installer_${ARCH}.exe" # Dynamic name based on ARCH

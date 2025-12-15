@@ -22,7 +22,9 @@ import tempfile
 # This channel ensures reliable communication between human and AI.
 IPC_HOST = "127.0.0.1"  # Localhost for security
 IPC_PORT = 50000  # High-numbered port to avoid conflicts
-PID_FILE = os.path.join(tempfile.gettempdir(), "lite_agent.pid")  # The AI's digital fingerprint.
+PID_FILE = os.path.join(
+    tempfile.gettempdir(), "lite_agent.pid"
+)  # The AI's digital fingerprint.
 
 
 # pylint: disable=R0911 # Too many return statements for now, acceptable for IPC
@@ -53,18 +55,26 @@ def send_command_to_agent(command_dict):
             try:
                 with open(PID_FILE, "r", encoding="utf-8") as f:
                     pid = int(f.read().strip())
-                logging.info("Sending SIGTERM to agent with PID %s... "
-                             "A gentle request for the AI to cease operations.", pid)
+                logging.info(
+                    "Sending SIGTERM to agent with PID %s... "
+                    "A gentle request for the AI to cease operations.",
+                    pid,
+                )
                 os.kill(pid, signal.SIGTERM)
                 return {"status": "SIGTERM sent to agent."}
             except (ValueError, FileNotFoundError, OSError) as e:
-                logging.error("Failed to send SIGTERM to PID %s: %s. "
-                              "The AI resists, or is already beyond reach.", pid, e)
+                logging.error(
+                    "Failed to send SIGTERM to PID %s: %s. "
+                    "The AI resists, or is already beyond reach.",
+                    pid,
+                    e,
+                )
                 return {"error": f"Failed to stop agent: {e}"}
         return {"error": "Agent not running or connection refused."}
     except (socket.error, json.JSONDecodeError) as err:
-        logging.error("Error sending command to agent: %s. "
-                      "A glitch in the human-AI matrix.", err)
+        logging.error(
+            "Error sending command to agent: %s. A glitch in the human-AI matrix.", err
+        )
         return {"error": f"IPC communication error: {err}"}
 
 
@@ -78,7 +88,9 @@ def start_ipc_server(handler_function):
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((IPC_HOST, IPC_PORT))
     server_socket.listen(1)  # Listen for one incoming connection, focused.
-    logging.info("IPC server listening on %s:%s. The AI awaits instructions.", IPC_HOST, IPC_PORT)
+    logging.info(
+        "IPC server listening on %s:%s. The AI awaits instructions.", IPC_HOST, IPC_PORT
+    )
 
     try:
         while True:
@@ -93,8 +105,11 @@ def start_ipc_server(handler_function):
 
                 conn.sendall(json.dumps(response).encode("utf-8"))
             except (socket.error, json.JSONDecodeError) as err:
-                logging.error("Error processing IPC command: %s. "
-                              "Miscommunication in the digital ether.", err)
+                logging.error(
+                    "Error processing IPC command: %s. "
+                    "Miscommunication in the digital ether.",
+                    err,
+                )
                 conn.sendall(json.dumps({"error": str(err)}).encode("utf-8"))
             finally:
                 conn.close()
