@@ -37,6 +37,7 @@ jobs:
 
   build-windows-installer:
     runs-on: windows-latest
+    timeout-minutes: 10
     strategy:
       matrix:
         python-version: ["3.12"] # Use a specific Python version for stability
