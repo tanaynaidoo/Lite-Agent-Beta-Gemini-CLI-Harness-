@@ -83,7 +83,12 @@ jobs:
       run: choco install nsis --no-progress
     - name: Build Windows Executable and Installer (${{ matrix.architecture }})
       shell: bash
-      run: bash host/windows/build.sh ${{ matrix.architecture }}
+      run: |
+        OUTPUT_FILE="build_script_output.log"
+        bash host/windows/build.sh ${{ matrix.architecture }} > $OUTPUT_FILE 2>&1
+        echo "--- Contents of ${OUTPUT_FILE} ---"
+        cat $OUTPUT_FILE
+        echo "--- End of ${OUTPUT_FILE} ---"
     - name: Upload NSIS Installer (${{ matrix.architecture }})
       uses: actions/upload-artifact@v4
       with:
