@@ -45,12 +45,34 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }} (${{ matrix.architecture }})
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12.10" # Use a specific Python version for stability
-        architecture: ${{ matrix.architecture }} # Specify 32-bit or 64-bit Python
-        # Removed cache: 'pip' to force fresh download/install
+    - name: Manual Python Setup (${{ matrix.architecture }})
+      shell: powershell
+      run: |
+        $pythonVersion = "3.12.10"
+        $architecture = "${{ matrix.architecture }}"
+        $pythonZipName = "python-${pythonVersion}-embed-"
+
+        if ($architecture -eq "x64") {
+            $pythonZipName += "amd64.zip"
+        } elseif ($architecture -eq "x86") {
+            $pythonZipName += "win32.zip"
+        } else {
+            Write-Error "Unsupported architecture: $architecture"
+            exit 1
+        }
+
+        $pythonDownloadUrl = "https://www.python.org/ftp/python/${pythonVersion}/${pythonZipName}"
+        $pythonInstallDir = "$env:TEMP\python-${pythonVersion}-${architecture}"
+
+        Write-Host "Downloading Python from: $pythonDownloadUrl"
+        Invoke-WebRequest -Uri $pythonDownloadUrl -OutFile "$env:TEMP\$pythonZipName"
+
+        Write-Host "Extracting Python to: $pythonInstallDir"
+        Expand-Archive -Path "$env:TEMP\$pythonZipName" -DestinationPath $pythonInstallDir -Force
+
+        Write-Host "Adding Python to PATH for this session"
+        $env:Path = "$pythonInstallDir;$env:Path"
+        Write-Host "Python setup complete. Python executable: (Get-Command python).Source"
     - name: Install dependencies
       shell: bash
       timeout-minutes: 10
