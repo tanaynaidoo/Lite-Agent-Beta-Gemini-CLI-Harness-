@@ -23,23 +23,27 @@ APP_NAME="esl-harness" # Desired name for the PyInstaller executable
 
 echo "--- Building Windows Executable for Lite Agent CLI ($ARCH) ---"
 
-# 1. Check for virtual environment and activate it
+# 1. Check for virtual environment
 if [ ! -d "$VENV_PATH" ]; then
     echo "Virtual environment '$VENV_PATH' not found. Please set up the development environment first (see main README)."
     exit 1
 fi
 
 echo "Activating virtual environment..."
+source "$VENV_PATH/Scripts/activate"
 
-# shellcheck disable=SC1091
-source "$VENV_PATH/bin/activate"
+# Use the venv's python and pip directly
+VENV_PYTHON="$VENV_PATH/Scripts/python.exe"
+VENV_PIP="$VENV_PATH/Scripts/pip.exe"
+VENV_PYINSTALLER="$VENV_PATH/Scripts/pyinstaller.exe"
+
 
 # 2. Install PyInstaller if not already installed
-if ! command -v pyinstaller &> /dev/null; then
-    echo "PyInstaller not found. Installing..."
-    pip install pyinstaller
+if ! command -v "$VENV_PYINSTALLER" &> /dev/null; then
+    echo "PyInstaller not found in venv. Installing..."
+    "$VENV_PIP" install pyinstaller
 else
-    echo "PyInstaller already installed."
+    echo "PyInstaller already installed in venv."
 fi
 
 # 3. Clean up previous build artifacts
@@ -48,15 +52,20 @@ echo "Cleaning up previous build artifacts..."
 rm -rf "$BUILD_DIR" "$DIST_DIR" "$APP_NAME.spec" "LiteAgentCLI_Installer_x64.exe" "LiteAgentCLI_Installer_x86.exe"
 
 # 4. Run PyInstaller
+# Before PyInstaller call:
+WIN_MAIN_SCRIPT="$(cygpath -w "$MAIN_SCRIPT")"
+WIN_DIST_DIR="$(cygpath -w "$DIST_DIR")"
+WIN_BUILD_DIR="$(cygpath -w "$BUILD_DIR")"
+
 echo "Running PyInstaller to create standalone executable ($ARCH)..."
-pyinstaller \
+"$VENV_PYINSTALLER" \
     --noconfirm \
     --onefile \
     --console \
     --name "$APP_NAME" \
-    --distpath "$DIST_DIR" \
-    --workpath "$BUILD_DIR" \
-    "$MAIN_SCRIPT"
+    --distpath "$WIN_DIST_DIR" \
+    --workpath "$WIN_BUILD_DIR" \
+    "$WIN_MAIN_SCRIPT"
 
 echo "--- PyInstaller Build Complete ($ARCH) ---"
 echo "Standalone executable can be found in: $(pwd)/$DIST_DIR/$APP_NAME.exe"
