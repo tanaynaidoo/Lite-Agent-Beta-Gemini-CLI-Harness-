@@ -15,11 +15,14 @@ import sys
 import time
 
 import click
+import psutil
+import json
 
-# Import IPC functions and PID_FILE
-# flake8: noqa: F401 (UDS_PATH is not directly used, but PID_FILE is)
-# pylint: disable=W0611 # UDS_PATH is not directly used in this file
-from .ipc import PID_FILE, UDS_PATH, send_command_to_agent
+from .ipc import PID_FILE, send_command_to_agent
+
+CONFIG_DIR = click.get_app_dir("lite-agent")
+CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
+
 
 
 @click.group()
@@ -41,10 +44,10 @@ def start():
     if os.path.exists(PID_FILE):
         click.echo(f"PID file found at {PID_FILE}. Agent might already be running.")
         try:
-            with open(PID_FILE, "r", encoding="utf-8") as f: # pylint: disable=W1514
+            with open(PID_FILE, "r", encoding="utf-8") as f:
                 pid = int(f.read().strip())
             # Check if process exists in the system's process table
-            if pid > 0 and os.path.exists(f"/proc/{pid}"):
+            if pid > 0 and psutil.pid_exists(pid):
                 click.echo(
                     f"Agent is already running with PID: {pid}. "
                     "A watchful AI is already at its post. Exiting."
@@ -60,15 +63,10 @@ def start():
 
     # Launch agent_core.py as a detached subprocess.
     # This command is the human's call to bring the agent to life.
-    python_executable = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        ".venv",
-        "bin",
-        "python",
-    )
+    python_executable = sys.executable
     if not os.path.exists(python_executable):
-        click.echo("Error: Python executable not found in ./.venv/bin. "
-                   "Ensure the virtual environment is correctly set up.", err=True)
+        click.echo("Error: Python executable not found. "
+                   "This is unexpected, please check your environment.", err=True)
         sys.exit(1)
 
     try:
@@ -79,17 +77,20 @@ def start():
         )
         click.echo("Lite Agent daemon initiated. Check logs for the AI's first thoughts.")
 
-        # Give a moment for the daemon to start and write its PID
-        time.sleep(1)
-        if os.path.exists(PID_FILE):
-            with open(PID_FILE, "r", encoding="utf-8") as f: # pylint: disable=W1514
-                pid = int(f.read().strip())
-            click.echo(f"Agent is now operational with PID: {pid}. Your AI is ready.")
-        else:
-            click.echo(
-                "Could not find PID file. Daemon might have failed to start. "
-                "Consult the logs for diagnostics.", err=True
-            )
+        # Wait for the daemon to start and write its PID file
+        start_time = time.time()
+        while not os.path.exists(PID_FILE):
+            if time.time() - start_time > 5:
+                click.echo(
+                    "Could not find PID file after 5 seconds. Daemon might have failed to start. "
+                    "Consult the logs for diagnostics.", err=True
+                )
+                sys.exit(1)
+            time.sleep(0.1)
+
+        with open(PID_FILE, "r", encoding="utf-8") as f:
+            pid = int(f.read().strip())
+        click.echo(f"Agent is now operational with PID: {pid}. Your AI is ready.")
 
     except (FileNotFoundError, PermissionError, OSError) as err:
         click.echo(f"Error starting daemon: {err}. "
@@ -112,19 +113,20 @@ def stop():
             # pylint: disable=W1514,R1732
             with open(PID_FILE, "r", encoding="utf-8") as f:
                 pid = int(f.read().strip())
+            
             # Give agent some time to shut down gracefully
-            time.sleep(1)
-            # Check if process exists before attempting to kill
-            if os.path.exists(f"/proc/{pid}"):
-                click.echo(
-                    f"Agent with PID {pid} is still running after stop command. "
-                    "The AI resists! Forcing termination with SIGKILL."
-                )
-                os.kill(pid, signal.SIGKILL)
-                click.echo(f"SIGKILL sent to PID {pid}.")
-            else:
-                click.echo(f"Agent with PID {pid} is no longer running. "
-                           "The AI has gracefully retired.")
+            time.sleep(2)
+            if psutil.pid_exists(pid):
+                click.echo(f"Agent with PID {pid} is still running. Sending SIGTERM.")
+                os.kill(pid, signal.SIGTERM)
+                time.sleep(3)
+                if psutil.pid_exists(pid):
+                    click.echo(f"Agent with PID {pid} did not respond to SIGTERM. Sending SIGKILL.")
+                    os.kill(pid, signal.SIGKILL)
+                    click.echo(f"SIGKILL sent to PID {pid}.")
+
+            if not psutil.pid_exists(pid):
+                click.echo(f"Agent with PID {pid} is no longer running. The AI has gracefully retired.")
 
             os.remove(PID_FILE)
             click.echo("PID file removed. A clean slate for the next activation.")
@@ -153,7 +155,7 @@ def status():
         # pylint: disable=W1514,R1732
         with open(PID_FILE, "r", encoding="utf-8") as f:
             pid = int(f.read().strip())
-        if pid > 0 and os.path.exists(f"/proc/{pid}"):
+        if pid > 0 and psutil.pid_exists(pid):
             click.echo(f"Agent is running with PID: {pid}. "
                        "The AI is actively processing.")
             response = send_command_to_agent({"command": "status"})
@@ -179,13 +181,31 @@ def status():
             os.remove(PID_FILE)
 
 
+
+
+def load_config():
+    """Loads the configuration from the JSON file."""
+    if not os.path.exists(CONFIG_FILE):
+        return {}
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError):
+        return {}
+
+def save_config(config_data):
+    """Saves the configuration to the JSON file."""
+    os.makedirs(CONFIG_DIR, exist_ok=True)
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(config_data, f, indent=4)
+
+
 # Example of a subcommand group for configuration
 @main.group()
 def config():
     """Manage Lite Agent configuration.
     Adjust the AI's parameters, fine-tuning its behavior.
     """
-    # pylint: disable=unnecessary-pass # Pass is fine for Click groups
     pass
 
 
@@ -195,8 +215,12 @@ def get_config(key):
     """Retrieves a configuration value.
     Inquire about a specific parameter guiding the AI.
     """
-    click.echo(f"Getting config for key: {key} (placeholder). "
-               "The AI reveals its current settings.")
+    config_data = load_config()
+    value = config_data.get(key)
+    if value is not None:
+        click.echo(f"{key}: {value}")
+    else:
+        click.echo(f"Configuration key '{key}' not found.", err=True)
 
 
 @config.command(name="set")
@@ -206,8 +230,10 @@ def set_config(key, value):
     """Sets a configuration value.
     Impart new directives to shape the AI's operational parameters.
     """
-    click.echo(f"Setting config '{key}' to '{value}' (placeholder). "
-               "The AI absorbs new instructions.")
+    config_data = load_config()
+    config_data[key] = value
+    save_config(config_data)
+    click.echo(f"Set '{key}' to '{value}'. The AI absorbs new instructions.")
 
 
 @config.command(name="show")
@@ -215,8 +241,11 @@ def show_config():
     """Shows the current configuration.
     Display the full blueprint of the AI's current operational state.
     """
-    click.echo("Showing current configuration (placeholder). "
-               "A glimpse into the AI's mind.")
+    config_data = load_config()
+    if config_data:
+        click.echo(json.dumps(config_data, indent=4))
+    else:
+        click.echo("No configuration set. The AI's mind is a blank slate.")
 
 
 if __name__ == '__main__':

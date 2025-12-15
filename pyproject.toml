@@ -5,6 +5,7 @@ description = "A foundational harness for building intelligent AI agents with hu
 authors = [{name = "Gemini Agent", email = "gemini-agent@google.com"}]
 dependencies = [
     "click",
+    "psutil",
 ]
 requires-python = ">=3.8"
 readme = "README.md"
